@@ -4,7 +4,7 @@ NAME 			:= pipex
 
 # ------------ Ingredients ------------ #
 
-SRCS			:= test.c
+SRCS			:= src/main.c
 OBJS			:= $(SRCS:.c=.o)
 
 LIBS			:= ftprintfgnl
