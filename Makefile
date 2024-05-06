@@ -6,9 +6,10 @@ NAME 			:= pipex
 
 SRC_DIR			:= src
 SRCS			:= main.c
+SRCS			:= $(SRCS:%=$(SRC_DIR)/%)
 
 BUILD_DIR		:= .build
-OBJS			:= $(SRC_DIR)/%.c=$(BUILD_DIR)/%.o
+OBJS			:= $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 
 LIBS			:= ftprintfgnl
 LIBS_TARGET		:= lib/libftprintfgnl.a
