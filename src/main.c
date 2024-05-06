@@ -6,7 +6,7 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/30 10:55:50 by jguacide          #+#    #+#             */
-/*   Updated: 2024/05/01 13:55:12 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/05/06 16:33:34 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,19 +15,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
-// METHOD:
-// 1. Parse command line argument with env
-// 2. create pipe
-// 3. Fork child (and close unused fd)
-// 4. execute first command in first child
-// 5. fork another child
-// 6. execute second command
-// 7. Parent: close unused fd, wait for children
-// 8. open / close input / output files
-// 9. close all
-
+// when parsing check for wrong command
+//
 // Parse the env array to find the PATH substring
+// parse the whole command inbeween quotes, it's not "ls -l" but "ls" "-l"
 char *get_cmd_path(char *env[], char *cmd)
 {
 	int i;
@@ -48,18 +41,23 @@ char *get_cmd_path(char *env[], char *cmd)
 	while (path_dir[i] != NULL)
 	{
 		char *dir = path_dir[i];
-		char *step1_cmd = ft_strjoin(dir, "/");	// TODO: protect strjoin: free the whole double array in case of error
+		char *step1_cmd = ft_strjoin(dir, "/");
+		if (!step1_cmd)
+		{
+			printf("error with first strjoin.");
+			ft_free(path_dir);
+			return (NULL);
+		}
 		char *full_cmd = ft_strjoin(step1_cmd, cmd);
 		if (access(full_cmd, X_OK) == 0)
 		{
 			ft_free(path_dir);
 			return (full_cmd);
-		}// change args + check for return value if works or didnt work
+		}
 		free(full_cmd);
 		i++;
 	}
 	ft_free(path_dir);
-// access if return value works, return that . if didnt owkr free evrything i've allocated!
 	return (NULL);
 }
 
@@ -67,17 +65,18 @@ char *get_cmd_path(char *env[], char *cmd)
 int main(int argc, char *argv[], char *env[])
 {
 	// Parse the env array to find the PATH substring
+	// TODO: How to deal with file1? input -> how do i link it with the command?
 	char *first_cmd;
 	char *second_cmd;
 	// With first command
-	first_cmd = get_cmd_path(env, argv[1]);
+	first_cmd = get_cmd_path(env, argv[2]);
 	if (first_cmd == NULL)
 	{
 		ft_printf("Not valid command");
 		return (1);
 	}
 	// And second one
-	second_cmd = get_cmd_path(env, argv[2]);
+	second_cmd = get_cmd_path(env, argv[3]);
 	if (second_cmd == NULL)
 	{
 		ft_printf("Not a valid command");
@@ -102,19 +101,15 @@ int main(int argc, char *argv[], char *env[])
 	{
 		// In CHILD 
 		// close unused fd: read end
+		// TODO:open file, use fd and redirect it 
+		dup2(fd[1], STDOUT_FILENO);
+		dup2(infile, STDIN_FILENO);
 		close(fd[0]);
-		char args[] = {first_cmd, NULL};
-		execve(full_cmd, args, NULL);
-		// TODO: How to retrieve output if execve deletes all the code? to the terminal?
-		// DO I need to cater to the only two commands listed in the subject?
-		
-		
-		
-
-
-
-
 		close(fd[1]);
+		char *args[] = {first_cmd, NULL};
+		execve(first_cmd, args, NULL);// 3rd argument is the environment list env
+		// TODO: take care of case if exec fails (other code will keep executing)
+		// TODO: I need to cater to the only two commands listed in the subject?
 	}
 
 	// Fork second child
@@ -124,29 +119,30 @@ int main(int argc, char *argv[], char *env[])
 		printf("An error occured with second fork.\n");
 		return (2);
 	}
-	if (id == 0)
+	if (id2 == 0)
 	{
 		// in CHILD
 		// close unused fd: write end
+		// dup read end to STDIN 
+		dup2(fd[0], STDIN_FILENO);
 		close(fd[1]);
-		// TODO: HOW TO RETRIEVE DATA FROM FIRST CHILD?
-		read(fd[0], &)
-
-
-
 		close(fd[0]);
-		
-	
+		// read from STDIN 
+		read(STDIN_FILENO, &, )
+		// TODO: dup to whatever argv[4] was specified as 
 		
 	}
+
 	// in parent wait for both children to execute and grab error code with waitpid
+	// on success, execve does not retour, retunrs -1 for error and errno is set appropriately -> look into it to build the perror
 	int status1;
 	
-	waitpid(id1, &status, 0);
-	if (WIFEXITED(status) != 0)
+	waitpid(id1, &status1, 0);
+	// retrieve the exit status of the last 
+	if (WIFEXITED(status1) != 0)
 	{
 		// TODO: handle error in case execve fails
-		printf("execve failed in first child.\n")
+		printf("execve failed in first child.\n");
 		return (3);
 	}
 	return (0);

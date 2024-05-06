@@ -4,8 +4,11 @@ NAME 			:= pipex
 
 # ------------ Ingredients ------------ #
 
-SRCS			:= src/main.c
-OBJS			:= $(SRCS:.c=.o)
+SRC_DIR			:= src
+SRCS			:= main.c
+
+BUILD_DIR		:= .build
+OBJS			:= $(SRC_DIR)/%.c=$(BUILD_DIR)/%.o
 
 LIBS			:= ftprintfgnl
 LIBS_TARGET		:= lib/libftprintfgnl.a
@@ -13,6 +16,7 @@ LIBS_TARGET		:= lib/libftprintfgnl.a
 # ------------ Utensils ------------ #
 
 CFLAGS			:= -Wall -Wextra -Werror -g -fsanitize=address
+DIR_PUP			= mkdir -p $(@D)
 RM				:= rm -f
 
 # ------------ Recipes ------------ #
@@ -22,7 +26,8 @@ all: $(NAME)
 $(NAME): $(OBJS) $(LIBS_TARGET)
 	cc $(CFLAGS) $(OBJS) -L $(dir $(LIBS_TARGET)) -l $(LIBS) -o $(NAME)
 
-%.o:%.c
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	$(DIR_PUP)
 	cc $(CFLAGS) -c $< -o $@
 
 $(LIBS_TARGET):
@@ -30,7 +35,7 @@ $(LIBS_TARGET):
 
 clean:
 	$(MAKE) clean -C $(dir $(LIBS_TARGET))
-	$(RM) $(OBJS)
+	$(RM) $(BUILD_DIR)
 
 fclean: clean
 	$(MAKE) fclean -C $(dir $(LIBS_TARGET))
