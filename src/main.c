@@ -6,16 +6,19 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/30 10:55:50 by jguacide          #+#    #+#             */
-/*   Updated: 2024/05/08 11:33:45 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/05/08 13:49:04 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
+#include <stdio.h>
+#include <unistd.h>
 
 // when parsing check for wrong command
 // Parse the env array to find the PATH substring
 // parse the whole command inbeween quotes, it's not "ls -l" but "ls" "-l"
 // TODO: separate this function so that one returns new_cmd and the other the full path (that one is done already)
+// TODO: Reallocate error return values/codes for mistakes of the same type 
 
 int main(int argc, char *argv[], char *env[])
 {
@@ -48,25 +51,27 @@ int main(int argc, char *argv[], char *env[])
 	if (id1 == 0)
 	{
 		// Step 4.1: open the infile
-		int fd_file = open(argv[1], O_WRONLY | O_CREAT, 0777);
-		if (fd_file == -1)
+		int infile = open(argv[1], O_RONLY | O_CREAT, 0777); // TODO: should i create it if no in file or send error?
+		if (infile == -1)
 			return (perror("Error opening file"), 1);
 		// Step 4.2: use dup2 to redirect reading from STDIN to the infile. 
-		if (dup2(STDIN_FILENO, fd_file) == -1)
+		if (dup2(infile, STDIN_FILENO) == -1)
 			return (perror("Error redirecting STDIN to infile"), 1);
+		// Step 4.3: likewise, redirect fd[1] to STDOUT 
 		if (dup2(fd[1], STDOUT_FILENO) == -1)
 			return (perror("Error redirecting pipe to STDOUT"), 1);
-		// Step 4.3: close all unused fd. 
-		close(fd_file); // necessary to close or not?
+		// Step 4.4: close all unused fd.
 		close(fd[0]);
 		close(fd[1]);
-		char *args[] = {new_cmd[0], new_cmd[1], NULL}; // what if there is no new_cmd 1 ? TODO: populate args with a while loop?
-		if (execve(first_cmd, args, env) == -1)
+		close(infile);
+		// Step 4.5: use execve to perform the command.
+		char *args[] = {first_cmd_path, first_cmd[1], NULL};
+		if (execve(first_cmd[0], args, env) == -1)
 			return (perror("Error with execve"), 1);
 		return (0);
 	}
 
-	// Fork second child
+	// Step 5: Fork the second child
 	int id2 = fork();
 	if (id2 == -1)
 	{
@@ -75,16 +80,24 @@ int main(int argc, char *argv[], char *env[])
 	}
 	if (id2 == 0)
 	{
-		// in CHILD
-		int outfile = open(argv[4], O_RDONLY);
+		// Step 5.1: open the outfile
+		int outfile = open(argv[4], O_WRONLY | O_CREAT, 0777);
+		if (outfile == -1)
+			return (perror("Error opening outfile"), 3);
+		// Step2: redirect STDIN to pipe
 		dup2(fd[0], STDIN_FILENO);
-		dup2(STDOUT_FILENO, outfile);
+		// Step 5.3: redirect STDOUT to outfile
+		dup2(outfile, STDOUT_FILENO);
+		// Step 5.4: close unused fd
 		close(fd[1]);
 		close(fd[0]);
-		// TODO: how to knpw what amount to read? use get_next_line?
-		// TODO: figure out how to use execve in this child
-		//read(STDIN_FILENO, &, sizeof(?));
-		write(outfile, &OUTPUTDEMACMD)
+		close(outfile);
+	
+		// Step 5.5: use execve to perform the second command.
+		char *args[] = {second_cmd_path, second_cmd[1], NULL};
+		if (execve(first_cmd[0], args, env) == -1)
+			return (perror("Error with execve"), 1);
+		return (0);
 	}
 
 	// in parent wait for both children to execute and grab error code with waitpid
