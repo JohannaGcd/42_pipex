@@ -17,7 +17,8 @@ char *get_cmd_path(char *env[], char **cmd)
 	// Step 2: skip "PATH=" and split the substring
 	char *PATH = env[i] + 5;
 	char **path_dir = ft_split(PATH, ':');
-	//TODO: protect split
+	if (!path_dir)
+		free_double(path_dir);
 
 	// Step 3: test the command with each substring to find the right binary path
 	// -> note: first add "/" before joining potential path with the cmd 
@@ -29,13 +30,16 @@ char *get_cmd_path(char *env[], char **cmd)
 		if (!step1_path)
 		{
 			printf("error with first strjoin.");
-			ft_free(path_dir); // TODO: see above, check ft_Free -> not sure it frees all the date inside
+			free_double(path_dir); // TODO: free path_dir here? or only step1_path?
+			free(step1_path);
 			return (NULL);
 		}
 		char *full_path = ft_strjoin(step1_path, cmd[0]); //TODO:protect strjoin
+		if (!full_path)
+			//TODO: if strjoin returns NULL what else do in need to free?
 		if (access(full_path, X_OK) == 0)
 		{
-			ft_free(path_dir);
+			free_double(path_dir); // TODO: same question as above.
 			return (full_path);
 		}
 		free(full_path);
@@ -61,8 +65,8 @@ char **get_cmd(char *str)
 	}
 	return (cmd);
 	// TODO: check how I can free split, doesn't seem to free all date inside but just to free the double pointer
-	// TODO: protect function: what if str is empty?
-	// TODO: is it here if i check whether it is a real command or not?
+	// TODO: protect function: what if str is empty? -> check if enough arguments (4, argc 5)
+	// TODO: is it here if i check whether it is a real command or not? -> done through execve with correvt error code
 	
 }
 

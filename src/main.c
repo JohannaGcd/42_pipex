@@ -6,19 +6,15 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/30 10:55:50 by jguacide          #+#    #+#             */
-/*   Updated: 2024/05/08 13:49:04 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/05/09 11:37:15 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
-#include <stdio.h>
-#include <unistd.h>
 
-// when parsing check for wrong command
-// Parse the env array to find the PATH substring
-// parse the whole command inbeween quotes, it's not "ls -l" but "ls" "-l"
-// TODO: separate this function so that one returns new_cmd and the other the full path (that one is done already)
+// TODO: when parsing how to check for wrong command --> execve will exit with a specific error code to interpret
 // TODO: Reallocate error return values/codes for mistakes of the same type 
+
 
 int main(int argc, char *argv[], char *env[])
 {
@@ -50,14 +46,15 @@ int main(int argc, char *argv[], char *env[])
 	// Step 4: In the first child process, execute the first command
 	if (id1 == 0)
 	{
+		// In First Child
 		// Step 4.1: open the infile
-		int infile = open(argv[1], O_RONLY | O_CREAT, 0777); // TODO: should i create it if no in file or send error?
+		int infile = open(argv[1], O_RDONLY, 0777);
 		if (infile == -1)
 			return (perror("Error opening file"), 1);
-		// Step 4.2: use dup2 to redirect reading from STDIN to the infile. 
+		// Step 4.2: use dup2 to redirect reading from STDIN to the infile. To remember: "dup2(int oldfd, int newfd)" -> "I want newfd to point to oldfd" 
 		if (dup2(infile, STDIN_FILENO) == -1)
 			return (perror("Error redirecting STDIN to infile"), 1);
-		// Step 4.3: likewise, redirect fd[1] to STDOUT 
+		// Step 4.3: likewise, redirect STDOUT to the write-end of the pipe (fd[1])
 		if (dup2(fd[1], STDOUT_FILENO) == -1)
 			return (perror("Error redirecting pipe to STDOUT"), 1);
 		// Step 4.4: close all unused fd.
@@ -70,8 +67,10 @@ int main(int argc, char *argv[], char *env[])
 			return (perror("Error with execve"), 1);
 		return (0);
 	}
+	// Step 5: close the unused fd before forking the second child. Here, second child doesn't need fd[1].
+	close(fd[1]);
 
-	// Step 5: Fork the second child
+	// Step 6: Fork the second child
 	int id2 = fork();
 	if (id2 == -1)
 	{
@@ -80,31 +79,37 @@ int main(int argc, char *argv[], char *env[])
 	}
 	if (id2 == 0)
 	{
-		// Step 5.1: open the outfile
+		// In Second Child
+		// Step 6.1: open the outfile
 		int outfile = open(argv[4], O_WRONLY | O_CREAT, 0777);
 		if (outfile == -1)
 			return (perror("Error opening outfile"), 3);
-		// Step2: redirect STDIN to pipe
-		dup2(fd[0], STDIN_FILENO);
-		// Step 5.3: redirect STDOUT to outfile
+		// Step 6.2: redirect STDIN to the read-end of the pipe (fd[0])
+		dup2(fd[0], STDIN_FILENO); 
+		// Step 6.3: redirect STDOUT to outfile
 		dup2(outfile, STDOUT_FILENO);
-		// Step 5.4: close unused fd
-		close(fd[1]);
+		// Step 6.4: close unused fd -> thanks to the redirection, execve will use STDOUT to output
 		close(fd[0]);
 		close(outfile);
 	
-		// Step 5.5: use execve to perform the second command.
+		// Step 6.5: use execve to perform the second command.
 		char *args[] = {second_cmd_path, second_cmd[1], NULL};
 		if (execve(first_cmd[0], args, env) == -1)
 			return (perror("Error with execve"), 1);
 		return (0);
 	}
 
-	// in parent wait for both children to execute and grab error code with waitpid
-	// on success, execve does not retour, retunrs -1 for error and errno is set appropriately -> look into it to build the perror
+	// TODO: In parent wait for both children to execute and grab error code with waitpid
+	// TODO: on success, execve does not retour, retunrs -1 for error and errno is set appropriately -> look into it to build the perror
+	// TODO: build function to free all data inside a double pointer
+
+
+	// In Parent
+	// Step 7: Close all remaining file descriptors.
+	close fd[0];
+	// Step 8: Wait for children to execute
 	int status1;
-	
-	waitpid(id1, &status1, 0);
+	waitpid(id1, &status1, 0); // TODO: what am I supposed to do in Parent? a macro 
 	// retrieve the exit status of the last 
 	if (WIFEXITED(status1) != 0)
 	{
@@ -113,4 +118,9 @@ int main(int argc, char *argv[], char *env[])
 		return (3);
 	}
 	return (0);
+	// have to wait on my two children
+	// exit with exit cde of lats child\
+	// strerror?
+	// closing all unused fd from the start
+	// close all of them then 
 }
