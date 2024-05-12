@@ -6,7 +6,7 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/30 10:55:50 by jguacide          #+#    #+#             */
-/*   Updated: 2024/05/12 12:25:17 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/05/12 16:53:24 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,14 +32,29 @@ int main(int argc, char *argv[], char *env[])
 
 
 	first_cmd = get_cmd(argv[2]);
-	first_cmd_path = get_cmd_path(env, first_cmd[0]);
 	if (first_cmd == NULL)
-		return (perror("Not a valid command"), 1);
+		return (perror("Not a valid command"), 1); // TODO: do I need to return with exit failure here?
+	first_cmd_path = get_cmd_path(env, first_cmd[0]);
+	if (!first_cmd_path)
+	{
+		free_double(first_cmd);
+		return (EXIT_FAILURE);
+	}
 	second_cmd = get_cmd(argv[3]);
+	if (!second_cmd)
+	{
+		free_double(first_cmd);
+		free(first_cmd_path);
+		return (EXIT_FAILURE);
+	}
 	second_cmd_path = get_cmd_path(env, second_cmd[0]);
-	if (second_cmd == NULL)
-		return (perror("Not a valid command"), 1);
-	
+	if (!second_cmd_path)
+	{
+		free_double(first_cmd);
+		free(first_cmd_path);
+		free_double(second_cmd);
+		return (EXIT_FAILURE);
+	}
 	// Step 2: create a pipe
 	int fd[2];
 	pipe(fd);

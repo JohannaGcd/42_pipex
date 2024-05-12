@@ -1,4 +1,6 @@
 #include "pipex.h"
+#include <stdio.h>
+#include <string.h>
 
 // This function takes the env and cmd double arrays
 // finds and returns the correct binary path (if it exists)
@@ -19,10 +21,12 @@ char *get_cmd_path(char *env[], char *cmd)
 	char **path_dir = ft_split(PATH, ':');
 	if (!path_dir)
 		free_double(path_dir);
+	// TODO: Split lines 14 -> here in another function (to avoid repeating this step twice) and give the path dir as input to this function
 
 	// Step 3: test the command with each substring to find the right binary path
 	// -> note: first add "/" before joining potential path with the cmd 
 	i = 0;
+	char *error_message;
 	while (path_dir[i] != NULL)
 	{
 		char *dir = path_dir[i];
@@ -30,21 +34,36 @@ char *get_cmd_path(char *env[], char *cmd)
 		if (!step1_path)
 		{
 			printf("error with first strjoin.");
-			free_double(path_dir); // TODO: free path_dir here? or only step1_path?
+			free_double(path_dir); 
+			return (NULL);
+		}
+		char *full_path = ft_strjoin(step1_path, &cmd[0]);
+		if (!full_path)
+		{
+			free_double(path_dir);
 			free(step1_path);
 			return (NULL);
 		}
-		char *full_path = ft_strjoin(step1_path, cmd[0]); //TODO:protect strjoin
-		if (!full_path)
-			//TODO: if strjoin returns NULL what else do in need to free?
 		if (access(full_path, X_OK) == 0)
 		{
 			free_double(path_dir); // TODO: same question as above.
 			return (full_path);
 		}
+		else 
+		{
+			if (errno == ENOENT)
+				return (perror("File or directory does not exist.\n"), NULL);
+			else if (errno == EACCES)
+				return (perror("Access denied.\n"), NULL);
+			else
+			{
+				error_message = strerror(errno);
+				return (error_message); 
+			}
+		}
 		free(full_path);
 		i++;
-	}
+	}	
 	ft_free(path_dir);
 	return (NULL);
 }
