@@ -2,7 +2,7 @@
 
 // This function takes the env and cmd double arrays
 // finds and returns the correct binary path (if it exists)
-char *get_cmd_path(char *env[], char **cmd)
+char *get_cmd_path(char *env[], char *cmd)
 {
 	// Step 1: loop through env[][], find PATH substring
 	int i;
@@ -64,10 +64,6 @@ char **get_cmd(char *str)
 		ft_free(cmd); 
 	}
 	return (cmd);
-	// TODO: check how I can free split, doesn't seem to free all date inside but just to free the double pointer
-	// TODO: protect function: what if str is empty? -> check if enough arguments (4, argc 5)
-	// TODO: is it here if i check whether it is a real command or not? -> done through execve with correvt error code
-	
 }
 
 

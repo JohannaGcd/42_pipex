@@ -18,7 +18,7 @@
 
 // get_cmd.c
 
-char *get_cmd_path(char *env[], char **cmd);
+char *get_cmd_path(char *env[], char *cmd);
 char **get_cmd(char *str);
 
 // pipex_utils.c

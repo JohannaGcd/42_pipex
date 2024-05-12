@@ -6,11 +6,13 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/30 10:55:50 by jguacide          #+#    #+#             */
-/*   Updated: 2024/05/09 11:37:15 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/05/12 12:25:17 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 // TODO: when parsing how to check for wrong command --> execve will exit with a specific error code to interpret
 // TODO: Reallocate error return values/codes for mistakes of the same type 
@@ -24,11 +26,17 @@ int main(int argc, char *argv[], char *env[])
 	char *second_cmd_path;
 	char **second_cmd;
 
+	// TODO: is this enough protection ? if yes, add step2 comment here. 
+	if (argc != 5)
+		return (perror("wrong argument input"), 1);
+
+
 	first_cmd = get_cmd(argv[2]);
 	first_cmd_path = get_cmd_path(env, first_cmd[0]);
 	if (first_cmd == NULL)
 		return (perror("Not a valid command"), 1);
-	second_cmd = get_cmd_path(env, argv[3]);
+	second_cmd = get_cmd(argv[3]);
+	second_cmd_path = get_cmd_path(env, second_cmd[0]);
 	if (second_cmd == NULL)
 		return (perror("Not a valid command"), 1);
 	
@@ -39,7 +47,7 @@ int main(int argc, char *argv[], char *env[])
 		return (perror("Error creating pipe."), 2);
 
 	// Step 3: Fork the first child process
-	int id1 = fork();
+	pid_t id1 = fork();
 	if (id1 == -1)
 		return (perror("Error forking child process."), 3);
 	
@@ -64,19 +72,18 @@ int main(int argc, char *argv[], char *env[])
 		// Step 4.5: use execve to perform the command.
 		char *args[] = {first_cmd_path, first_cmd[1], NULL};
 		if (execve(first_cmd[0], args, env) == -1)
-			return (perror("Error with execve"), 1);
-		return (0);
+		{
+			perror("Error with execve"); 
+			exit(EXIT_FAILURE);
+		}
 	}
 	// Step 5: close the unused fd before forking the second child. Here, second child doesn't need fd[1].
 	close(fd[1]);
 
 	// Step 6: Fork the second child
-	int id2 = fork();
+	pid_t id2 = fork();
 	if (id2 == -1)
-	{
-		printf("An error occured with second fork.\n");
-		return (2);
-	}
+		return (perror("Error forking second child process."), 2);
 	if (id2 == 0)
 	{
 		// In Second Child
@@ -95,32 +102,42 @@ int main(int argc, char *argv[], char *env[])
 		// Step 6.5: use execve to perform the second command.
 		char *args[] = {second_cmd_path, second_cmd[1], NULL};
 		if (execve(first_cmd[0], args, env) == -1)
-			return (perror("Error with execve"), 1);
-		return (0);
+		{
+			perror("Error with execve"); 
+			exit(EXIT_FAILURE);
+		}
 	}
-
-	// TODO: In parent wait for both children to execute and grab error code with waitpid
-	// TODO: on success, execve does not retour, retunrs -1 for error and errno is set appropriately -> look into it to build the perror
-	// TODO: build function to free all data inside a double pointer
-
 
 	// In Parent
 	// Step 7: Close all remaining file descriptors.
-	close fd[0];
+	close(fd[0]);
 	// Step 8: Wait for children to execute
 	int status1;
-	waitpid(id1, &status1, 0); // TODO: what am I supposed to do in Parent? a macro 
-	// retrieve the exit status of the last 
-	if (WIFEXITED(status1) != 0)
+	int status2;
+	int child2ExitStatus;
+	pid_t f_child;
+	pid_t s_child;
+
+	f_child = waitpid(id1, &status1, 0);
+	// retrieve the exit status of the last
+	if (WIFEXITED(status1))
+		ft_printf("Child process terminated normally with exit status : %d\n", WEXITSTATUS(status1));
+	else 
+		ft_printf("Child process terminated abnormally.\n");
+
+	s_child = waitpid(id1, &status2, 0);
+	if (WIFEXITED(status2))
 	{
-		// TODO: handle error in case execve fails
-		printf("execve failed in first child.\n");
-		return (3);
+		child2ExitStatus = WEXITSTATUS(status2);
+		ft_printf("Child process terminated normally with exit status : %d\n", child2ExitStatus);
+		exit(child2ExitStatus);
+	}
+	else 
+	{
+		ft_printf("Child process terminated abnormally.\n");
+		exit(EXIT_FAILURE);
+
 	}
 	return (0);
-	// have to wait on my two children
-	// exit with exit cde of lats child\
-	// strerror?
-	// closing all unused fd from the start
-	// close all of them then 
 }
+// TODO: strerror?
