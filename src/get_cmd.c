@@ -23,6 +23,13 @@ char *get_cmd_path(char *env[], char *cmd)
 
 	// Step 3: test the command with each substring to find the right binary path
 	// -> note: first add "/" before joining potential path with the cmd 
+	
+	// TODO:
+	// first check if it's a relative/absolute path => "./pipex" || "/bin/ls"
+	// ft_strncmp("cmd", "/", 1)
+	// ft_strncmp("cmd", "./", 2)
+	// ft_strncmp("cmd", "../", 3)
+	// return this ft_strdup(cmd) immediately 
 	i = 0;
 	char *error_message;
 	while (path_dir[i] != NULL)
@@ -70,6 +77,7 @@ char *get_cmd_path(char *env[], char *cmd)
 // This function gets the complete command and potential argument from argv
 // and transforms it into a double array
 // (ie -> "ls -la" become double array with "ls" and "-la")
+// TODO: maybe split cmd's in childprocesses because not needed by parent and by other child
 char **get_cmd(char *str)
 {
 	int i;

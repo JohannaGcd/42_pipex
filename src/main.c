@@ -6,7 +6,7 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/30 10:55:50 by jguacide          #+#    #+#             */
-/*   Updated: 2024/05/13 14:31:17 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/05/13 15:31:37 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ int main(int argc, char *argv[], char *env[])
 	char **second_cmd;
 
 	if (argc != 5)
-		return (write(1, "wrong argument input", 20), 0); // TODO:: return 0 or a error code?
+		return (write(1, "wrong argument input", 20), 0);
 
 	first_cmd = get_cmd(argv[2]);
 	if (first_cmd == NULL)
@@ -34,14 +34,14 @@ int main(int argc, char *argv[], char *env[])
 	if (!first_cmd_path)
 	{
 		free_double(first_cmd);
-		return (perror("Error allocating command path"), EXIT_FAILURE);//TODO::can i use EXITFAILURE like this with return?
+		return (perror("Error allocating command path"), EXIT_FAILURE);
 	}
 	second_cmd = get_cmd(argv[3]);
 	if (!second_cmd)
 	{
 		free_double(first_cmd);
 		free(first_cmd_path);
-		return (perror("Error allocating command path"), EXIT_FAILURE); //TODO: so actually, usually yo only use the name of the function as a string
+		return (perror("Error allocating command path"), EXIT_FAILURE);
 	}
 	second_cmd_path = get_cmd_path(env, second_cmd[0]);
 	if (!second_cmd_path)
@@ -82,6 +82,10 @@ int main(int argc, char *argv[], char *env[])
 		close(infile);
 		// Step 4.5: use execve to perform the command.
 		char *args[] = {first_cmd_path, first_cmd[1], NULL};
+		// TODO: CORRECT THIS. Because, what if I have multiple arguments?
+		//free(first_cmd[0]);
+		//first_cmd[0] = first_cmd_path;
+		//execve(first_cmd[0], first_cmd, env)
 		if (execve(first_cmd[0], args, env) == -1)
 		{
 			perror("Error with execve"); 
@@ -112,6 +116,7 @@ int main(int argc, char *argv[], char *env[])
 	
 		// Step 6.5: use execve to perform the second command.
 		char *args[] = {second_cmd_path, second_cmd[1], NULL};
+		// TODO: see execve in first child
 		if (execve(first_cmd[0], args, env) == -1)
 		{
 			perror("Error with execve"); 
@@ -131,24 +136,17 @@ int main(int argc, char *argv[], char *env[])
 
 	f_child = waitpid(id1, &status1, 0);
 	// retrieve the exit status of the last
+	// TODO: use waitpid first on second and then wait(NULL). More portable for multiple processes.
 	if (WIFEXITED(status1))
 		ft_printf("Child process terminated normally with exit status : %d\n", WEXITSTATUS(status1));
 	else 
 		ft_printf("Child process terminated abnormally.\n");
 
-	s_child = waitpid(id1, &status2, 0);
+	s_child = waitpid(id2, &status2, 0);
 	if (WIFEXITED(status2))
 	{
 		child2ExitStatus = WEXITSTATUS(status2);
 		ft_printf("Child process terminated normally with exit status : %d\n", child2ExitStatus);
-		exit(child2ExitStatus);
+		return (child2ExitStatus);
 	}
-	else 
-	{
-		ft_printf("Child process terminated abnormally.\n");
-		exit(EXIT_FAILURE);
-
-	}
-	return (0);
 }
-// TODO: strerror?
