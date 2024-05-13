@@ -6,16 +6,14 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/30 10:55:50 by jguacide          #+#    #+#             */
-/*   Updated: 2024/05/12 16:53:24 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/05/13 14:31:17 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
-#include <stdio.h>
-#include <stdlib.h>
 
-// TODO: when parsing how to check for wrong command --> execve will exit with a specific error code to interpret
-// TODO: Reallocate error return values/codes for mistakes of the same type 
+// TODO: Reallocate error return values/codes for mistakes of the same type
+// aand write small tests program (get cmd path) and to undertsand diff above
 
 
 int main(int argc, char *argv[], char *env[])
@@ -26,26 +24,24 @@ int main(int argc, char *argv[], char *env[])
 	char *second_cmd_path;
 	char **second_cmd;
 
-	// TODO: is this enough protection ? if yes, add step2 comment here. 
 	if (argc != 5)
-		return (perror("wrong argument input"), 1);
-
+		return (write(1, "wrong argument input", 20), 0); // TODO:: return 0 or a error code?
 
 	first_cmd = get_cmd(argv[2]);
 	if (first_cmd == NULL)
-		return (perror("Not a valid command"), 1); // TODO: do I need to return with exit failure here?
+		return (perror("Not a valid command"), EXIT_FAILURE);
 	first_cmd_path = get_cmd_path(env, first_cmd[0]);
 	if (!first_cmd_path)
 	{
 		free_double(first_cmd);
-		return (EXIT_FAILURE);
+		return (perror("Error allocating command path"), EXIT_FAILURE);//TODO::can i use EXITFAILURE like this with return?
 	}
 	second_cmd = get_cmd(argv[3]);
 	if (!second_cmd)
 	{
 		free_double(first_cmd);
 		free(first_cmd_path);
-		return (EXIT_FAILURE);
+		return (perror("Error allocating command path"), EXIT_FAILURE); //TODO: so actually, usually yo only use the name of the function as a string
 	}
 	second_cmd_path = get_cmd_path(env, second_cmd[0]);
 	if (!second_cmd_path)
@@ -53,18 +49,18 @@ int main(int argc, char *argv[], char *env[])
 		free_double(first_cmd);
 		free(first_cmd_path);
 		free_double(second_cmd);
-		return (EXIT_FAILURE);
+		return (perror("Error allocating command path"), EXIT_FAILURE);
 	}
 	// Step 2: create a pipe
 	int fd[2];
 	pipe(fd);
 	if (pipe(fd) == -1)
-		return (perror("Error creating pipe."), 2);
+		return (perror("Error creating pipe."), EXIT_FAILURE);
 
 	// Step 3: Fork the first child process
 	pid_t id1 = fork();
 	if (id1 == -1)
-		return (perror("Error forking child process."), 3);
+		return (perror("Error forking child process."), EXIT_FAILURE);
 	
 	// Step 4: In the first child process, execute the first command
 	if (id1 == 0)
@@ -73,13 +69,13 @@ int main(int argc, char *argv[], char *env[])
 		// Step 4.1: open the infile
 		int infile = open(argv[1], O_RDONLY, 0777);
 		if (infile == -1)
-			return (perror("Error opening file"), 1);
+			return (perror("Error opening file"), EXIT_FAILURE);
 		// Step 4.2: use dup2 to redirect reading from STDIN to the infile. To remember: "dup2(int oldfd, int newfd)" -> "I want newfd to point to oldfd" 
 		if (dup2(infile, STDIN_FILENO) == -1)
-			return (perror("Error redirecting STDIN to infile"), 1);
+			return (perror("Error redirecting STDIN to infile"), EXIT_FAILURE);
 		// Step 4.3: likewise, redirect STDOUT to the write-end of the pipe (fd[1])
 		if (dup2(fd[1], STDOUT_FILENO) == -1)
-			return (perror("Error redirecting pipe to STDOUT"), 1);
+			return (perror("Error redirecting pipe to STDOUT"), EXIT_FAILURE);
 		// Step 4.4: close all unused fd.
 		close(fd[0]);
 		close(fd[1]);

@@ -1,6 +1,4 @@
 #include "pipex.h"
-#include <stdio.h>
-#include <string.h>
 
 // This function takes the env and cmd double arrays
 // finds and returns the correct binary path (if it exists)
@@ -46,7 +44,8 @@ char *get_cmd_path(char *env[], char *cmd)
 		}
 		if (access(full_path, X_OK) == 0)
 		{
-			free_double(path_dir); // TODO: same question as above.
+			free_double(path_dir);
+			free(step1_path);
 			return (full_path);
 		}
 		else 
