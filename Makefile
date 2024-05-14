@@ -18,7 +18,7 @@ LIBS_TARGET		:= lib/libftprintfgnl.a
 
 CFLAGS			:= -Wall -Wextra -Werror -g -fsanitize=address
 DIR_PUP			= mkdir -p $(@D)
-RM				:= rm -f
+RM				:= rm -rf
 
 # ------------ Recipes ------------ #
 
