@@ -20,8 +20,6 @@ char *get_cmd_path(char *env[], char *cmd)
 	if (!path_dir)
 		free_double(path_dir);
 	// TODO: Split lines 14 -> here in another function (to avoid repeating this step twice) and give the path dir as input to this function
-
-	
 	// Step X: check if it's a relative or absolute path -> "./pipex" or "/bin/ls"
 	if (ft_strncmp(cmd, "/", 1) == 0)
 		return (ft_strdup(cmd));
