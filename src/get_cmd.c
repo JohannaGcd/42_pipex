@@ -21,15 +21,16 @@ char *get_cmd_path(char *env[], char *cmd)
 		free_double(path_dir);
 	// TODO: Split lines 14 -> here in another function (to avoid repeating this step twice) and give the path dir as input to this function
 
+	
+	// Step X: check if it's a relative or absolute path -> "./pipex" or "/bin/ls"
+	if (ft_strncmp(cmd, "/", 1) == 0)
+		return (ft_strdup(cmd));
+	if (ft_strncmp(cmd, "./", 2) == 0)
+		return (ft_strdup(cmd));
+	if (ft_strncmp(cmd, "../", 3) == 0)
+		return (ft_strdup(cmd));
 	// Step 3: test the command with each substring to find the right binary path
 	// -> note: first add "/" before joining potential path with the cmd 
-	
-	// TODO:
-	// first check if it's a relative/absolute path => "./pipex" || "/bin/ls"
-	// ft_strncmp("cmd", "/", 1)
-	// ft_strncmp("cmd", "./", 2)
-	// ft_strncmp("cmd", "../", 3)
-	// return this ft_strdup(cmd) immediately 
 	i = 0;
 	char *error_message;
 	while (path_dir[i] != NULL)

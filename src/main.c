@@ -6,13 +6,12 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/30 10:55:50 by jguacide          #+#    #+#             */
-/*   Updated: 2024/05/13 15:31:37 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/05/14 11:49:43 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
-// TODO: Reallocate error return values/codes for mistakes of the same type
 // aand write small tests program (get cmd path) and to undertsand diff above
 
 
@@ -81,12 +80,9 @@ int main(int argc, char *argv[], char *env[])
 		close(fd[1]);
 		close(infile);
 		// Step 4.5: use execve to perform the command.
-		char *args[] = {first_cmd_path, first_cmd[1], NULL};
-		// TODO: CORRECT THIS. Because, what if I have multiple arguments?
-		//free(first_cmd[0]);
-		//first_cmd[0] = first_cmd_path;
-		//execve(first_cmd[0], first_cmd, env)
-		if (execve(first_cmd[0], args, env) == -1)
+		free(first_cmd[0]);
+		first_cmd[0] = first_cmd_path;
+		if (execve(first_cmd[0], first_cmd, env) == -1)
 		{
 			perror("Error with execve"); 
 			exit(EXIT_FAILURE);
@@ -115,9 +111,9 @@ int main(int argc, char *argv[], char *env[])
 		close(outfile);
 	
 		// Step 6.5: use execve to perform the second command.
-		char *args[] = {second_cmd_path, second_cmd[1], NULL};
-		// TODO: see execve in first child
-		if (execve(first_cmd[0], args, env) == -1)
+		free(second_cmd[0]);
+		second_cmd[0] = second_cmd_path;
+		if (execve(second_cmd[0], second_cmd, env) == -1)
 		{
 			perror("Error with execve"); 
 			exit(EXIT_FAILURE);
@@ -127,20 +123,11 @@ int main(int argc, char *argv[], char *env[])
 	// In Parent
 	// Step 7: Close all remaining file descriptors.
 	close(fd[0]);
-	// Step 8: Wait for children to execute
-	int status1;
+	// Step 8: Wait for all children to execute, using waitpid for the second child to retrieve it's exit status 
+	// and wait(NULL) for all other children (ie. first child in this case);
 	int status2;
 	int child2ExitStatus;
-	pid_t f_child;
 	pid_t s_child;
-
-	f_child = waitpid(id1, &status1, 0);
-	// retrieve the exit status of the last
-	// TODO: use waitpid first on second and then wait(NULL). More portable for multiple processes.
-	if (WIFEXITED(status1))
-		ft_printf("Child process terminated normally with exit status : %d\n", WEXITSTATUS(status1));
-	else 
-		ft_printf("Child process terminated abnormally.\n");
 
 	s_child = waitpid(id2, &status2, 0);
 	if (WIFEXITED(status2))
@@ -149,4 +136,5 @@ int main(int argc, char *argv[], char *env[])
 		ft_printf("Child process terminated normally with exit status : %d\n", child2ExitStatus);
 		return (child2ExitStatus);
 	}
+	wait(NULL);
 }
