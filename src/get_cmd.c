@@ -1,4 +1,5 @@
 #include "pipex.h"
+#include <stdio.h>
 
 // This function takes the env and cmd double arrays
 // finds and returns the correct binary path (if it exists)
@@ -30,7 +31,6 @@ char *get_cmd_path(char *env[], char *cmd)
 	// Step 3: test the command with each substring to find the right binary path
 	// -> note: first add "/" before joining potential path with the cmd 
 	i = 0;
-	char *error_message;
 	while (path_dir[i] != NULL)
 	{
 		char *dir = path_dir[i];
@@ -54,23 +54,12 @@ char *get_cmd_path(char *env[], char *cmd)
 			free(step1_path);
 			return (full_path);
 		}
-		else 
-		{
-			if (errno == ENOENT)
-				return (perror("File or directory does not exist.\n"), NULL);
-			else if (errno == EACCES)
-				return (perror("Access denied.\n"), NULL);
-			else
-			{
-				error_message = strerror(errno);
-				return (error_message); 
-			}
-		}
+		free(step1_path);
 		free(full_path);
 		i++;
 	}	
 	ft_free(path_dir);
-	return (NULL);
+	return (perror("path not found"), NULL);
 }
 
 // This function gets the complete command and potential argument from argv
@@ -91,7 +80,17 @@ char **get_cmd(char *str)
 	return (cmd);
 }
 
-
-
+/*
+		else 
+		{
+			if (errno == ENOENT)
+				return (perror("File or directory does not exist.\n"), NULL);
+			else if (errno == EACCES)
+				return (perror("Access denied.\n"), NULL);
+			else
+			{
+				error_message = strerror(errno);
+				return (error_message); 
+*/
 
 

@@ -6,7 +6,7 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/30 10:55:50 by jguacide          #+#    #+#             */
-/*   Updated: 2024/05/14 11:49:43 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/05/16 17:38:57 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,7 +99,7 @@ int main(int argc, char *argv[], char *env[])
 	{
 		// In Second Child
 		// Step 6.1: open the outfile
-		int outfile = open(argv[4], O_WRONLY | O_CREAT, 0777);
+		int outfile = open(argv[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
 		if (outfile == -1)
 			return (perror("Error opening outfile"), 3);
 		// Step 6.2: redirect STDIN to the read-end of the pipe (fd[0])
@@ -134,7 +134,11 @@ int main(int argc, char *argv[], char *env[])
 	{
 		child2ExitStatus = WEXITSTATUS(status2);
 		ft_printf("Child process terminated normally with exit status : %d\n", child2ExitStatus);
-		return (child2ExitStatus);
+	}
+	else {
+		child2ExitStatus = -1;
+		ft_printf("Child process did not terminate normally.\n");
 	}
 	wait(NULL);
+	return (child2ExitStatus);
 }
