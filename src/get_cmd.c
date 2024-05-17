@@ -1,5 +1,6 @@
 #include "pipex.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 // This function takes the env and cmd double arrays
 // finds and returns the correct binary path (if it exists)
@@ -19,15 +20,27 @@ char *get_cmd_path(char *env[], char *cmd)
 	char *PATH = env[i] + 5;
 	char **path_dir = ft_split(PATH, ':');
 	if (!path_dir)
+	{
 		free_double(path_dir);
+		return (perror("Error split PATH"), NULL);
+	}
 	// TODO: Split lines 14 -> here in another function (to avoid repeating this step twice) and give the path dir as input to this function
 	// Step X: check if it's a relative or absolute path -> "./pipex" or "/bin/ls"
 	if (ft_strncmp(cmd, "/", 1) == 0)
+	{
+		free_double(path_dir);
 		return (ft_strdup(cmd));
+	}
 	if (ft_strncmp(cmd, "./", 2) == 0)
+	{
+		free_double(path_dir);
 		return (ft_strdup(cmd));
+	}
 	if (ft_strncmp(cmd, "../", 3) == 0)
+	{
+		free_double(path_dir);
 		return (ft_strdup(cmd));
+	}
 	// Step 3: test the command with each substring to find the right binary path
 	// -> note: first add "/" before joining potential path with the cmd 
 	i = 0;
@@ -44,21 +57,20 @@ char *get_cmd_path(char *env[], char *cmd)
 		char *full_path = ft_strjoin(step1_path, &cmd[0]);
 		if (!full_path)
 		{
-			free_double(path_dir);
 			free(step1_path);
+			free_double(path_dir);
 			return (NULL);
 		}
+		free(step1_path);
 		if (access(full_path, X_OK) == 0)
 		{
 			free_double(path_dir);
-			free(step1_path);
 			return (full_path);
 		}
-		free(step1_path);
 		free(full_path);
 		i++;
 	}	
-	ft_free(path_dir);
+	free_double(path_dir);
 	return (perror("path not found"), NULL);
 }
 
@@ -75,7 +87,7 @@ char **get_cmd(char *str)
 	cmd = ft_split(str, ' ');
 	if (!cmd)
 	{
-		ft_free(cmd); 
+		free_double(cmd); 
 	}
 	return (cmd);
 }

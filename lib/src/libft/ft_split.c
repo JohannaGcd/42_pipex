@@ -75,12 +75,7 @@ char	**ft_split(char const *s, char c)
 		word_len = get_word_len(s, c);
 		tab[i] = (char *)malloc((word_len + 1) * sizeof(char));
 		if (check_allocation(tab, i) == 1)
-		{
-			while (i > 0)
-				free(tab[--i]);
-			free(tab);
 			return (NULL);
-		}
 		ft_strlcpy(tab[i], s, word_len + 1);
 		s += word_len;
 		i++;
