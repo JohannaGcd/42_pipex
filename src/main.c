@@ -16,9 +16,9 @@
 int	main(int argc, char *argv[], char *env[])
 {
 	char	*first_cmd_path;
-	char	**first_cmd;
+	char	**first_cmd = NULL;
 	char	*second_cmd_path;
-	char	**second_cmd;
+	char	**second_cmd = NULL;
 	int		fd[2];
 	pid_t	id1;
 	int		infile;
@@ -30,28 +30,44 @@ int	main(int argc, char *argv[], char *env[])
 	// Step 1: get the command and the binary path to execute it (also checks for wrong input)
 	if (argc != 5)
 		return (write(1, "wrong argument input", 20), 0);
-	first_cmd = get_cmd(argv[2]);
-	if (first_cmd == NULL)
-		return (perror("Not a valid command"), EXIT_FAILURE);
+	if (ft_strncmp(argv[2], "", 1) == 0)
+	{
+		first_cmd[0] = ft_strdup(argv[2]);
+		first_cmd[1] = "\0";
+	}
+	else
+	{
+		first_cmd = get_cmd(argv[2]);
+		if (first_cmd == NULL)
+			return (perror("Not a valid command"), EXIT_FAILURE);
+	}
 	first_cmd_path = get_cmd_path(env, first_cmd[0]);
 	if (!first_cmd_path)
 	{
 		free_double(first_cmd);
 		return (perror("Error allocating command path"), EXIT_FAILURE);
 	}
-	second_cmd = get_cmd(argv[3]);
-	if (!second_cmd)
+	if (ft_strncmp(argv[3], "", 1) == 0)
 	{
-		free_double(first_cmd);
-		free(first_cmd_path);
-		return (perror("Error allocating command path"), EXIT_FAILURE);
+		second_cmd[0] = ft_strdup(argv[3]);
+		second_cmd[1] = "\0";
+	}
+	else
+	{
+	    second_cmd = get_cmd(argv[3]);
+		if (!second_cmd)
+		{
+			free_double(first_cmd);
+			free(first_cmd_path);
+			return (perror("Error allocating command path"), EXIT_FAILURE);
+		}
 	}
 	second_cmd_path = get_cmd_path(env, second_cmd[0]);
 	if (!second_cmd_path)
 	{
 		free_double(first_cmd);
 		free(first_cmd_path);
-		free_double(second_cmd);
+	    free_double(second_cmd);
 		return (perror("Error allocating command path"), EXIT_FAILURE);
 	}
 	// Step 2: create a pipe
@@ -69,7 +85,13 @@ int	main(int argc, char *argv[], char *env[])
 		// Step 4.1: open the infile
 		infile = open(argv[1], O_RDONLY, 0777);
 		if (infile == -1)
+		{
+			free_double(first_cmd);
+			free_double(second_cmd);
+			free(first_cmd_path);
+			free(second_cmd_path);
 			return (perror("Error opening file"), EXIT_FAILURE);
+		}
 		// Step 4.2: use dup2 to redirect reading from STDIN to the infile. To remember: "dup2(int oldfd, int newfd)" -> "I want newfd to point to oldfd"
 		if (dup2(infile, STDIN_FILENO) == -1)
 			return (perror("Error redirecting STDIN to infile"), EXIT_FAILURE);
@@ -101,7 +123,7 @@ int	main(int argc, char *argv[], char *env[])
 	{
 		// In Second Child
 		// Step 6.1: open the outfile
-		outfile = open(argv[4], O_RDWR | O_CREAT | O_TRUNC, 0664);
+		outfile = open(argv[4], O_RDWR | O_CREAT | O_TRUNC, 0777);
 		if (outfile == -1)
 			return (perror("Error opening outfile"), EXIT_FAILURE);
 		// Step 6.2: redirect STDIN to the read-end of the pipe (fd[0])

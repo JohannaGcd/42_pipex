@@ -83,6 +83,8 @@ char **get_cmd(char *str)
 	int i;
 	char **cmd;
 	
+	if (!str)
+		return (perror("permission denied"), NULL);
 	i = 0;
 	cmd = ft_split(str, ' ');
 	if (!cmd)
