@@ -6,11 +6,13 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/30 10:55:50 by jguacide          #+#    #+#             */
-/*   Updated: 2024/05/16 17:38:57 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/05/17 12:19:39 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 // aand write small tests program (get cmd path) and to undertsand diff above
 
@@ -99,9 +101,9 @@ int main(int argc, char *argv[], char *env[])
 	{
 		// In Second Child
 		// Step 6.1: open the outfile
-		int outfile = open(argv[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
+		int outfile = open(argv[4], O_RDWR | O_CREAT | O_TRUNC, 0664);
 		if (outfile == -1)
-			return (perror("Error opening outfile"), 3);
+			return (perror("Error opening outfile"), EXIT_FAILURE);
 		// Step 6.2: redirect STDIN to the read-end of the pipe (fd[0])
 		dup2(fd[0], STDIN_FILENO); 
 		// Step 6.3: redirect STDOUT to outfile
@@ -115,7 +117,7 @@ int main(int argc, char *argv[], char *env[])
 		second_cmd[0] = second_cmd_path;
 		if (execve(second_cmd[0], second_cmd, env) == -1)
 		{
-			perror("Error with execve"); 
+			perror("Error with execve");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -125,20 +127,31 @@ int main(int argc, char *argv[], char *env[])
 	close(fd[0]);
 	// Step 8: Wait for all children to execute, using waitpid for the second child to retrieve it's exit status 
 	// and wait(NULL) for all other children (ie. first child in this case);
-	int status2;
-	int child2ExitStatus;
-	pid_t s_child;
+	int status2 = 0;
+	int status1 = 0;
+	waitpid(id1, &status1, 0);
+	waitpid(id2, &status2, 0);
+	//wait(NULL);
+	/*int status2 = 0;
+	int child2ExitStatus = 0;
+	//pid_t s_child;
 
-	s_child = waitpid(id2, &status2, 0);
+	waitpid(id2, &status2, 0);
 	if (WIFEXITED(status2))
 	{
+		printf("status2 is: %d\n", status2);
 		child2ExitStatus = WEXITSTATUS(status2);
+		//return (WEXITSTATUS(status2))
+		printf("status2 is: %d\n", status2);
+		printf("child2ExitStatus is: %d\n", child2ExitStatus);
+		//child2ExitStatus = 0;
 		ft_printf("Child process terminated normally with exit status : %d\n", child2ExitStatus);
 	}
 	else {
-		child2ExitStatus = -1;
+		child2ExitStatus = 127;
 		ft_printf("Child process did not terminate normally.\n");
-	}
-	wait(NULL);
-	return (child2ExitStatus);
+	}*/
+	//printf("after NULL %d", child2ExitStatus);
+	//return (WEXITSTATUS(status2));
+	return (check_status(status2));
 }

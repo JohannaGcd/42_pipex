@@ -24,5 +24,6 @@ char **get_cmd(char *str);
 
 // pipex_utils.c
 char *free_double(char **str);
+int	check_status(int status);
 
 #endif

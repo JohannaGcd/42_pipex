@@ -1,4 +1,5 @@
 #include "pipex.h"
+#include <stdlib.h>
 
 char *free_double(char **str)
 {
@@ -25,4 +26,9 @@ char *free_double(char **str)
 
 // micha suggests: wait free and exit. waits for children, free and exit.
 
-
+int check_status(int status)
+{
+	if (WIFEXITED(status))
+		return (WEXITSTATUS(status));
+	return (127);
+}
