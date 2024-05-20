@@ -30,37 +30,21 @@ int	main(int argc, char *argv[], char *env[])
 	// Step 1: get the command and the binary path to execute it (also checks for wrong input)
 	if (argc != 5)
 		return (write(1, "wrong argument input", 20), 0);
-	if (ft_strncmp(argv[2], "", 1) == 0)
-	{
-		first_cmd[0] = ft_strdup(argv[2]);
-		first_cmd[1] = "\0";
-	}
-	else
-	{
-		first_cmd = get_cmd(argv[2]);
-		if (first_cmd == NULL)
-			return (perror("Not a valid command"), EXIT_FAILURE);
-	}
+	first_cmd = get_cmd(argv[2]);
+	if (first_cmd == NULL)
+		return (perror("Not a valid command"), EXIT_FAILURE);
 	first_cmd_path = get_cmd_path(env, first_cmd[0]);
 	if (!first_cmd_path)
 	{
 		free_double(first_cmd);
 		return (perror("Error allocating command path"), EXIT_FAILURE);
 	}
-	if (ft_strncmp(argv[3], "", 1) == 0)
+	second_cmd = get_cmd(argv[3]);
+	if (!second_cmd)
 	{
-		second_cmd[0] = ft_strdup(argv[3]);
-		second_cmd[1] = "\0";
-	}
-	else
-	{
-	    second_cmd = get_cmd(argv[3]);
-		if (!second_cmd)
-		{
-			free_double(first_cmd);
-			free(first_cmd_path);
-			return (perror("Error allocating command path"), EXIT_FAILURE);
-		}
+		free_double(first_cmd);
+		free(first_cmd_path);
+		return (perror("Error allocating command path"), EXIT_FAILURE);
 	}
 	second_cmd_path = get_cmd_path(env, second_cmd[0]);
 	if (!second_cmd_path)
@@ -125,7 +109,13 @@ int	main(int argc, char *argv[], char *env[])
 		// Step 6.1: open the outfile
 		outfile = open(argv[4], O_RDWR | O_CREAT | O_TRUNC, 0777);
 		if (outfile == -1)
+		{
+			free_double(second_cmd);
+			free_double(first_cmd);
+			free(second_cmd_path);
+			free(first_cmd_path);
 			return (perror("Error opening outfile"), EXIT_FAILURE);
+		}
 		// Step 6.2: redirect STDIN to the read-end of the pipe (fd[0])
 		if (dup2(fd[0], STDIN_FILENO) == -1)
 			return (perror("Error redirecting STDIN to fd[0]"), EXIT_FAILURE);
