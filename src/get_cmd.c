@@ -71,7 +71,7 @@ char *get_cmd_path(char *env[], char *cmd)
 		i++;
 	}	
 	free_double(path_dir);
-	return (perror("path not found"), NULL);
+	return (ft_strdup(cmd));
 }
 
 // This function gets the complete command and potential argument from argv

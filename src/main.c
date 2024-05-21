@@ -31,28 +31,40 @@ int	main(int argc, char *argv[], char *env[])
 	if (argc != 5)
 		return (write(1, "wrong argument input", 20), 0);
 	first_cmd = get_cmd(argv[2]);
-	if (first_cmd == NULL)
+	if (first_cmd == NULL || *first_cmd == NULL)
+	{
+		free_double(first_cmd);
 		return (perror("Not a valid command"), EXIT_FAILURE);
+	}
 	first_cmd_path = get_cmd_path(env, first_cmd[0]);
 	if (!first_cmd_path)
 	{
 		free_double(first_cmd);
 		return (perror("Error allocating command path"), EXIT_FAILURE);
 	}
+	else
+	{
+		free(first_cmd[0]);
+		first_cmd[0] = first_cmd_path;
+	}
 	second_cmd = get_cmd(argv[3]);
-	if (!second_cmd)
+	if (second_cmd == NULL || *second_cmd == NULL)
 	{
 		free_double(first_cmd);
-		free(first_cmd_path);
+		free_double(second_cmd);
 		return (perror("Error allocating command path"), EXIT_FAILURE);
 	}
 	second_cmd_path = get_cmd_path(env, second_cmd[0]);
 	if (!second_cmd_path)
 	{
 		free_double(first_cmd);
-		free(first_cmd_path);
 	    free_double(second_cmd);
 		return (perror("Error allocating command path"), EXIT_FAILURE);
+	}
+	else
+	{
+		free(second_cmd[0]);
+		second_cmd[0] = second_cmd_path;
 	}
 	// Step 2: create a pipe
 	pipe(fd);
@@ -72,29 +84,33 @@ int	main(int argc, char *argv[], char *env[])
 		{
 			free_double(first_cmd);
 			free_double(second_cmd);
-			free(first_cmd_path);
-			free(second_cmd_path);
 			return (perror("Error opening file"), EXIT_FAILURE);
 		}
 		// Step 4.2: use dup2 to redirect reading from STDIN to the infile. To remember: "dup2(int oldfd, int newfd)" -> "I want newfd to point to oldfd"
-		if (dup2(infile, STDIN_FILENO) == -1)
+		if (dup2(infile, STDIN_FILENO) == -1) //TODO: should i fre cmd paths herE? 
+		{
+			free_double(first_cmd);
+			free_double(second_cmd);
 			return (perror("Error redirecting STDIN to infile"), EXIT_FAILURE);
+		}
 		// Step 4.3: likewise, redirect STDOUT to the write-end of the pipe (fd[1])
 		if (dup2(fd[1], STDOUT_FILENO) == -1)
+		{
+			free_double(first_cmd);
+			free_double(second_cmd);
 			return (perror("Error redirecting pipe to STDOUT"), EXIT_FAILURE);
+		}
 		// Step 4.4: close all unused fd.
 		close(fd[0]);
 		close(fd[1]);
 		close(infile);
 		// Step 4.5: use execve to perform the command.
-		free(first_cmd[0]);
-		first_cmd[0] = first_cmd_path;
 		execve(first_cmd[0], first_cmd, env);
+		perror("Error with execve");
 		free_double(first_cmd);
 		free_double(second_cmd);
-		free(first_cmd_path);
-		free(second_cmd_path);
-		perror("Error with execve");
+		if (errno == ENOENT)
+			exit(127);
 		exit(EXIT_FAILURE);
 	}
 	// Step 5: close the unused fd before forking the second child. Here, second child doesn't need fd[1].
@@ -107,33 +123,36 @@ int	main(int argc, char *argv[], char *env[])
 	{
 		// In Second Child
 		// Step 6.1: open the outfile
-		outfile = open(argv[4], O_RDWR | O_CREAT | O_TRUNC, 0777);
+		outfile = open(argv[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
 		if (outfile == -1)
 		{
-			free_double(second_cmd);
 			free_double(first_cmd);
-			free(second_cmd_path);
-			free(first_cmd_path);
+			free_double(second_cmd);
 			return (perror("Error opening outfile"), EXIT_FAILURE);
 		}
 		// Step 6.2: redirect STDIN to the read-end of the pipe (fd[0])
 		if (dup2(fd[0], STDIN_FILENO) == -1)
+		{
+			free_double(first_cmd);
+			free_double(second_cmd);
 			return (perror("Error redirecting STDIN to fd[0]"), EXIT_FAILURE);
+		}
 		// Step 6.3: redirect STDOUT to outfile
 		if (dup2(outfile, STDOUT_FILENO) == -1)
+		{
+			free_double(first_cmd);
+			free_double(second_cmd);
 			return (perror("Error redirecting STDOUT to outfile"), EXIT_FAILURE);
+		}
 		// Step 6.4: close unused fd -> thanks to the redirection, execve will use STDOUT to output
 		close(fd[0]);
 		close(outfile);
 		// Step 6.5: use execve to perform the second command.
-		free(second_cmd[0]);
-		second_cmd[0] = second_cmd_path;
 		execve(second_cmd[0], second_cmd, env);
-		free_double(second_cmd);
 		free_double(first_cmd);
-		free(second_cmd_path);
-		free(first_cmd_path);
-		perror("Error with execve");
+		free_double(second_cmd);
+		if (errno == ENOENT)
+			exit(127);
 		exit(EXIT_FAILURE);
 	}
 	// In Parent
@@ -145,31 +164,7 @@ int	main(int argc, char *argv[], char *env[])
 	status1 = 0;
 	waitpid(id1, &status1, 0);
 	waitpid(id2, &status2, 0);
-	// wait(NULL);
-	/*int status2 = 0;
-	child2ExitStatus = 0;
-	//pid_t s_child;
-	waitpid(id2, &status2, 0);
-	if (WIFEXITED(status2))
-	{
-		printf("status2 is: %d\n", status2);
-		child2ExitStatus = WEXITSTATUS(status2);
-		//return (WEXITSTATUS(status2))
-		printf("status2 is: %d\n", status2);
-		printf("child2ExitStatus is: %d\n", child2ExitStatus);
-		//child2ExitStatus = 0;
-		ft_printf("Child process terminated normally with exit status : %d\n",
-			child2ExitStatus);
-	}
-	else {
-		child2ExitStatus = 127;
-		ft_printf("Child process did not terminate normally.\n");
-	}*/
-	// printf("after NULL %d", child2ExitStatus);
-	// return (WEXITSTATUS(status2));
 	free_double(first_cmd);
 	free_double(second_cmd);
-	free(first_cmd_path);
-	free(second_cmd_path);
 	return (check_status(status2));
-}
+} 
