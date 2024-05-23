@@ -6,7 +6,7 @@
 /*   By: jguacide <jguacide@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2024/04/30 10:55:50 by jguacide      #+#    #+#                 */
-/*   Updated: 2024/05/22 19:47:13 by jguacide      ########   odam.nl         */
+/*   Updated: 2024/05/23 12:02:41 by jguacide      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,39 +89,38 @@ int	main(int argc, char *argv[], char *env[])
 			return (perror("Error opening file"), EXIT_FAILURE);
 		}
 		// Step 4.2: use dup2 to redirect reading from STDIN to the infile. To remember: "dup2(int oldfd,
-			int newfd)" -> "I want newfd to point to oldfd"
+		// int newfd)" -> "I want newfd to point to oldfd"
 		if (dup2(infile, STDIN_FILENO) == -1)
-			// TODO: should i fre cmd paths herE?
-			{
-				free_double(first_cmd);
-				free_double(second_cmd);
-				return (perror("Error redirecting STDIN to infile"),
-					EXIT_FAILURE);
-			}
-			// Step 4.3: likewise,
-			redirect STDOUT to the write
-				- end of the pipe(fd[1]) if (dup2(fd[1], STDOUT_FILENO) == -1)
-			{
-				free_double(first_cmd);
-				free_double(second_cmd);
-				return (perror("Error redirecting pipe to STDOUT"),
-					EXIT_FAILURE);
-			}
-			// Step 4.4: close all unused fd.
-			close(fd[0]);
-			close(fd[1]);
-			close(infile);
-			// Step 4.5: use execve to perform the command.
-			execve(first_cmd[0], first_cmd, env);
-			perror("Error with execve");
+		{
 			free_double(first_cmd);
 			free_double(second_cmd);
-			if (errno == ENOENT)
-				exit(127);
-			exit(EXIT_FAILURE);
+			return (perror("Error redirecting STDIN to infile"), EXIT_FAILURE);
+		}
+		// Step 4.3: likewise,
+		// redirect STDOUT to the write
+		//	- end of the pipe(fd[1])
+		if (dup2(fd[1], STDOUT_FILENO) == -1)
+		{
+			free_double(first_cmd);
+			free_double(second_cmd);
+			return (perror("Error redirecting pipe to STDOUT"), EXIT_FAILURE);
+		}
+		// Step 4.4: close all unused fd.
+		close(fd[0]);
+		close(fd[1]);
+		close(infile);
+		// Step 4.5: use execve to perform the command.
+		execve(first_cmd[0], first_cmd, env);
+		perror("Error with execve");
+		free_double(first_cmd);
+		free_double(second_cmd);
+		if (errno == ENOENT)
+			exit(127);
+		exit(EXIT_FAILURE);
 	}
 	// Step 5: close the unused fd before forking the second child. Here,
-	second child doesn't need fd[1]. close(fd[1]);
+	// second child doesn't need fd[1].
+	close(fd[1]);
 	// Step 6: Fork the second child
 	id2 = fork();
 	if (id2 == -1)

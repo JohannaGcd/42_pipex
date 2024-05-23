@@ -1,9 +1,9 @@
 #include "pipex.h"
 #include <stdlib.h>
 
-char *free_double(char **str)
+char	*free_double(char **str)
 {
-	int i;
+	int	i;
 
 	if (!str)
 		return (NULL);
@@ -17,16 +17,17 @@ char *free_double(char **str)
 	return (NULL);
 }
 
-// TODO: exit or return
+int	wait_for_children(pid_t id1, pid_t id2)
+{
+	int	status1;
+	int	status2;
 
-// exit or return: anything malloc free in function and exit(x);
-// in child : exit(x);
-// in main return ;
-// in main for pipe: free and exit(x);
+	waitpid(id1, &status1, 0); // can i send NULL instead of status1?
+	waitpid(id2, &status2, 0);
+	return (check_status(status2));
+}
 
-// micha suggests: wait free and exit. waits for children, free and exit.
-
-int check_status(int status)
+int	check_status(int status)
 {
 	if (WIFEXITED(status))
 		return (WEXITSTATUS(status));

@@ -1,23 +1,35 @@
 #include "pipex.h"
 
-MAIN : 1. check input argc check_commands(use it twice, with argv[2],
-	and argv[3])
-
-	2. create pipe
-
-	3. call fork id1 if id1 = 0 execute child function
-		/ in child : open the infile;
-
-4. call fork id2 
-	idem
-
-5. wait for children
-
+// METHOD:
+// Step 1: Main initializes an array to store the id of each child;
+// and an array to store the file descriptors for the pipe.
+// Step 2: Checks if argc isn't 5
+// Step 3: Executes the first fork, stores in id_array[0];
+// if id_array[0] == 0 -> Executes the first child
+// Step 4: Executes the second fork, stores in id_array[1];
+// if id_array[1] == 0 -> Executes the second child
+// Step 5: Executes wait_for_children,
+// which calls waitpid for both and returns the exit status
+// of the second child.
 int	main(int argc, char *argv[], char *env[])
 {
+	pid_t id_array[2];
+	int fd[2];
+
 	if (argc != 5)
 		return (ft_printf("Input format: program infile cmd cmd outfile\n"));
-
-	t_generic_data *pipex_data = calloc(sizeof(t_generic_data));
-	t_generic_data->first_cmd = retrieve_commands(argv, env);
+	if (pipe(fd) == -1)
+		return (perror("Error creating pipe."), EXIT_FAILURE);
+	id_array[0] = fork();
+	if (id_array[0] == -1)
+		return (perror("Error forking second child process."), EXIT_FAILURE);
+	if (id_array[0] == 0)
+		execute_child(argv, fd, env, 1);
+	id_array[1] = fork();
+	if (id_array[1] == -1)
+		return (perror("Error forking second child process."), EXIT_FAILURE);
+	close(fd[1]);
+	if (id_array[1] == 0)
+		execute_child(argv[1], argv[2], fd, env, 1);
+	return (wait_for_children(id_array[0], id_array[1]));
 }

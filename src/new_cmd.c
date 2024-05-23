@@ -5,36 +5,37 @@
 // Step by step process:
 // 1. get_cmd initializes a double array with the command and flags
 // 2. get_env_path loops through env until it finds the PATH substring
-// 3. format_path splits PATH into a double array with each binary path
+// 3. split PATH into a double array with each binary path
 // 4. get_cmd_path 1.checks for direct paths first, 2.otherwise it loops through
 // the double array path_dir (ie. splitted PATH) 3. it calls on format_bin_path
 // to add "/ + cmd[0]" at the end of the binary path 4. then it tests the path
 // using the function access.
-
-char	**retrieve_commands(char *argv[], char *env[])
+char	**retrieve_cmds(char *argv, char *env[])
 {
 	char	**cmd;
 	char	*env_path;
 	char	*cmd_path;
-	char	*cmd_path_step1;
+	char	**path_substr;
 
-	cmd = get_cmd(argv[3]);
+	cmd = get_cmd(argv);
+	if (!cmd)
+		return (NULL);
 	env_path = get_env_path(env);
 	if (!env_path)
 		return (free_double(cmd), NULL);
-	cmd_path_step1 = format_env_path(env_path, cmd[0]);
-	if (!cmd_path_step1)
+	path_substr = ft_split(path_substr, ':');
+	if (!path_substr)
 	{
 		free_double(cmd);
 		free(env_path);
 		return (NULL);
 	}
-	cmd_path = get_cmd_path(env_path, cmd[0]);
+	cmd_path = get_cmd_path(path_substr, cmd[0]);
 	if (!cmd_path)
 	{
 		free_double(cmd);
 		free(env_path);
-		free(cmd_path_step1);
+		free(path_substr);
 		return (NULL);
 	}
 	free(cmd[0]);
@@ -68,19 +69,6 @@ char	*get_env_path(char *env[])
 		i++;
 	}
 	return (NULL);
-}
-
-char	*format_env_path(char *path, char *cmd)
-{
-	char	**path_dir;
-
-	path_dir = ft_split(path, ':');
-	if (!path_dir)
-	{
-		free_double(path_dir);
-		return (perror("Error split PATH"), NULL);
-	}
-	return (path_dir);
 }
 
 char	*get_cmd_path(char **path_dir, char *cmd)

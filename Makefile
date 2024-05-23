@@ -5,7 +5,7 @@ NAME 			:= pipex
 # ------------ Ingredients ------------ #
 
 SRC_DIR			:= src
-SRCS			:= main.c get_cmd.c pipex_utils.c
+SRCS			:= main.c get_cmd.c pipex_utils.c execute_child.c
 SRCS			:= $(SRCS:%=$(SRC_DIR)/%)
 
 BUILD_DIR		:= .build
