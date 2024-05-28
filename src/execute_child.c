@@ -10,13 +10,19 @@ int	execute_child(char *argv[], int fd[], char *env[], size_t child)
 {
 	char	**cmd_child;
 
-	cmd_child = retrieve_cmds(cmd, env); // toprotect
+	if (child == 1)
+		cmd_child = retrieve_cmds(argv[2], env);
+	else
+		cmd_child = retrieve_cmds(argv[3], env);
 	if (!cmd_child)
 	{
-		return
+		return (NULL);
 	}
 	if (set_in_and_out(argv, fd, 1) == 1)
+	{
+		free_double(cmd_child);
 		return (perror("Error redirecting input/output"), EXIT_FAILURE);
+	}
 	execve(cmd_child[0], cmd_child, env);
 	perror("Error with execve");
 	if (errno == ENOENT)
@@ -31,11 +37,13 @@ int	open_file(char *file, size_t child_i)
 	if (child_i == 1)
 	{
 		fd = open(file, O_RDONLY, 0777);
-		// Protect
+		if (fd == -1)
+			return (perror("Error opening outfile"), EXIT_FAILURE);
 		return (fd);
 	}
 	fd = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0777);
-	// protect
+	if (fd == -1)
+		return (perror("Error opening outfile"), EXIT_FAILURE);
 	return (fd);
 }
 
@@ -47,15 +55,13 @@ int	set_in_and_out(char **argv, int pipe[], size_t child_i)
 
 	if (child_i == 1)
 	{
-		read_end = open_file(argv[1]);
+		read_end = open_file(argv[1], child_i);
 		write_end = pipe[1];
 		close(pipe[0]);
 	}
 	read_end = pipe[0];
-	write_end = open_file(argv[4], 1);
+	write_end = open_file(argv[4], child_i);
 	close(pipe[1]);
-	write_end = get_write_end(char *file, pipe[1], child_i);
-	// protect
 	if (dup2(read_end, STDIN_FILENO) == -1)
 		return (perror("Error redirecting STDIN to infile"), EXIT_FAILURE);
 	if (dup2(write_end, STDOUT_FILENO) == -1)
