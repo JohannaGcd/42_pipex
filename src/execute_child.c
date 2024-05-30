@@ -1,4 +1,5 @@
 #include "pipex.h"
+#include <stdio.h>
 
 // METHOD:
 // This function executes the child process specified.
@@ -15,9 +16,7 @@ int	execute_child(char *argv[], int fd[], char *env[], size_t child)
 	else
 		cmd_child = retrieve_cmds(argv[3], env);
 	if (!cmd_child)
-	{
-		return (NULL);
-	}
+		return (perror("Error retrieving command"), EXIT_FAILURE);
 	if (set_in_and_out(argv, fd, 1) == 1)
 	{
 		free_double(cmd_child);
@@ -48,7 +47,7 @@ int	open_file(char *file, size_t child_i)
 }
 
 // protect & close unused fd
-int	set_in_and_out(char **argv, int pipe[], size_t child_i)
+int	set_in_and_out(char *argv[], int pipe[], size_t child_i)
 {
 	int read_end;
 	int write_end;

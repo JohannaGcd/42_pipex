@@ -30,6 +30,6 @@ int	main(int argc, char *argv[], char *env[])
 		return (perror("Error forking second child process."), EXIT_FAILURE);
 	close(fd[1]);
 	if (id_array[1] == 0)
-		execute_child(argv, fd, env, 1);
+		execute_child(argv, fd, env, 2);
 	return (wait_for_children(id_array[0], id_array[1]));
 }

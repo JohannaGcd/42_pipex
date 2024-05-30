@@ -23,7 +23,7 @@ char	**retrieve_cmds(char *argv, char *env[])
 	env_path = get_env_path(env);
 	if (!env_path)
 		return (free_double(cmd), NULL);
-	path_substr = ft_split(path_substr, ':');
+	path_substr = ft_split(env_path, ':');
 	if (!path_substr)
 	{
 		free_double(cmd);
@@ -49,7 +49,7 @@ char	**get_cmd(char *str)
 	char	**cmd;
 
 	if (!str)
-		return (perror("permission denied"), NULL);
+		return (perror("empty cmd"), NULL);
 	i = 0;
 	cmd = ft_split(str, ' ');
 	if (!cmd)
@@ -73,14 +73,16 @@ char	*get_env_path(char *env[])
 
 char	*get_cmd_path(char **path_dir, char *cmd)
 {
-	char	*full_cmd_path;
-	char	*step1_path;
 	int		i;
+	char	*full_cmd_path;
 	char	*full_path;
 
 	full_cmd_path = check_direct_paths(cmd);
 	if (full_cmd_path)
+	{
+		free_double(path_dir);
 		return (full_cmd_path);
+	}
 	else
 	{
 		i = 0;
@@ -102,20 +104,11 @@ char	*get_cmd_path(char **path_dir, char *cmd)
 char	*check_direct_paths(char *cmd)
 {
 	if (ft_strncmp(cmd, "/", 1) == 0)
-	{
-		free_double(path_dir);
 		return (ft_strdup(cmd));
-	}
 	if (ft_strncmp(cmd, "./", 2) == 0)
-	{
-		free_double(path_dir);
 		return (ft_strdup(cmd));
-	}
 	if (ft_strncmp(cmd, "../", 3) == 0)
-	{
-		free_double(path_dir);
 		return (ft_strdup(cmd));
-	}
 	return (NULL);
 }
 
@@ -124,14 +117,11 @@ char	*format_bin_path(char *path_dir, char *cmd)
 	char *formatted_path;
 	char *step1_path;
 
-	step1_path = ft_strjoin(dir, "/");
+	step1_path = ft_strjoin(path_dir, "/");
 	if (!step1_path)
-		return (free_double(path_dir), NULL);
+		return (free(path_dir), NULL);
 	formatted_path = ft_strjoin(step1_path, &cmd[0]);
 	if (!formatted_path)
-	{
-		free(step1_path);
-		return (free_double(path_dir), NULL);
-	}
-	return (formatted_path);
+		return (free(step1_path), NULL);
+	return (free(step1_path), formatted_path);
 }
