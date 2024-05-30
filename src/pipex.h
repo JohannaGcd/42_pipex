@@ -27,7 +27,7 @@ char	*format_bin_path(char *path_dir, char *cmd);
 char	*free_double(char **str);
 int		open_file(char *file, size_t child_i);
 int		set_in_and_out(char **argv, int pipe[], size_t child_i);
-int		wait_for_children(pid_t id1, pid_t id2);
+int		wait_for_children(pid_t id1, pid_t id2, int fd[]);
 int		check_status(int status);
 
 #endif

@@ -31,5 +31,5 @@ int	main(int argc, char *argv[], char *env[])
 	close(fd[1]);
 	if (id_array[1] == 0)
 		execute_child(argv, fd, env, 2);
-	return (wait_for_children(id_array[0], id_array[1]));
+	return (wait_for_children(id_array[0], id_array[1], fd));
 }

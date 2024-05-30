@@ -17,10 +17,13 @@ char	*free_double(char **str)
 	return (NULL);
 }
 
-int	wait_for_children(pid_t id1, pid_t id2)
+int	wait_for_children(pid_t id1, pid_t id2, int fd[])
 {
 	int	status1;
 	int	status2;
+
+	close(fd[0]);
+	close(fd[1]);
 
 	waitpid(id1, &status1, 0); // can i send NULL instead of status1?
 	waitpid(id2, &status2, 0);
