@@ -23,6 +23,7 @@ int	execute_child(char *argv[], int fd[], char *env[], size_t child)
 		return (perror("Error redirecting input/output"), EXIT_FAILURE);
 	}
 	execve(cmd_child[0], cmd_child, env);
+	free_double(cmd_child);
 	perror("Error with execve");
 	if (errno == ENOENT)
 		exit(127);
@@ -64,19 +65,20 @@ int	set_in_and_out(char *argv[], int pipe[], size_t child_i)
 		write_end = open_file(argv[4], child_i);
 	}
 	if (read_end == -1 || write_end == -1)
-		return (perror("error opening file"), EXIT_FAILURE);
+		return (perror("error opening file"), 1);
 	if (dup2(read_end, STDIN_FILENO) == -1)
 	{
+		// TODO:check if that code is correct since dependant on failure to redirect?
 		if (child_i == 1)
 			close(pipe[1]);
 		else
 			close(pipe[0]);
-		return (perror("Error redirecting STDIN to infile"), EXIT_FAILURE);
+		return (perror("Error redirecting STDIN to infile"), 1);
 	}
 	if (dup2(write_end, STDOUT_FILENO) == -1)
 	{
 		close(pipe[0]);
-		return (perror("Error redirecting pipe to STDOUT"), EXIT_FAILURE);
+		return (perror("Error redirecting pipe to STDOUT"), 1);
 	}
 	return (0);
 }

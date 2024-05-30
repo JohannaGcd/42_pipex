@@ -38,6 +38,7 @@ char	**retrieve_cmds(char *argv, char *env[])
 		free(path_substr);
 		return (NULL);
 	}
+	free(path_substr);
 	free(cmd[0]);
 	cmd[0] = cmd_path;
 	return (cmd);
