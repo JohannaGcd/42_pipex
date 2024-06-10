@@ -1,4 +1,5 @@
 #include "pipex.h"
+#include <stdlib.h>
 
 // METHOD:
 // Step 1: Main initializes an array to store the id of each child;
@@ -13,11 +14,12 @@
 // of the second child.
 int	main(int argc, char *argv[], char *env[])
 {
-	pid_t id_array[2];
-	int fd[2];
+	pid_t	id_array[2];
+	int		fd[2];
+	int		exit_code;
 
 	if (argc != 5)
-		return (ft_printf("Input format: program infile cmd cmd outfile\n"));
+		return (perror("Input format: program infile cmd cmd outfile"), 1);
 	if (pipe(fd) == -1)
 		return (perror("Error creating pipe."), EXIT_FAILURE);
 	id_array[0] = fork();
@@ -30,6 +32,18 @@ int	main(int argc, char *argv[], char *env[])
 		return (perror("Error forking second child process."), EXIT_FAILURE);
 	close(fd[1]);
 	if (id_array[1] == 0)
-		execute_child(argv, fd, env, 2);
+	{
+		exit_code = execute_child(argv, fd, env, 2);
+		if (exit_code == 127)
+		{
+			perror("Error with second child");
+			exit(127);
+		}
+		if (exit_code != 0) 
+		{
+			perror("first Error with second child");
+			exit(exit_code);
+		}
+	}
 	return (wait_for_children(id_array[0], id_array[1], fd));
 }

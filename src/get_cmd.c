@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_cmd.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/10 17:36:01 by jguacide          #+#    #+#             */
+/*   Updated: 2024/06/10 19:37:58 by jguacide         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "pipex.h"
 
 // METHOD:
@@ -35,10 +47,10 @@ char	**retrieve_cmds(char *argv, char *env[])
 	{
 		free_double(cmd);
 		free(env_path);
-		free(path_substr);
+		free_double(path_substr);
 		return (NULL);
 	}
-	free(path_substr);
+	free_double(path_substr);
 	free(cmd[0]);
 	cmd[0] = cmd_path;
 	return (cmd);
@@ -81,7 +93,7 @@ char	*get_cmd_path(char **path_dir, char *cmd)
 	full_cmd_path = check_direct_paths(cmd);
 	if (full_cmd_path)
 	{
-		free_double(path_dir);
+		//free_double(path_dir);
 		return (full_cmd_path);
 	}
 	else
@@ -91,36 +103,40 @@ char	*get_cmd_path(char **path_dir, char *cmd)
 		{
 			full_path = format_bin_path(path_dir[i], cmd);
 			if (!full_path)
-				return (NULL);
+				return (free(path_dir), NULL);
 			if (access(full_path, X_OK) == 0)
 				return (full_path);
 			free(full_path);
 			i++;
 		}
-		free(full_path);
 	}
 	return (ft_strdup(cmd));
 }
 
 char	*check_direct_paths(char *cmd)
 {
+	if (cmd[0] == '/'
+		|| cmd[0] == '.'
+		|| cmd[0] == '~')
+		return (ft_strdup(cmd));
+/*
 	if (ft_strncmp(cmd, "/", 1) == 0)
 		return (ft_strdup(cmd));
 	if (ft_strncmp(cmd, "./", 2) == 0)
 		return (ft_strdup(cmd));
 	if (ft_strncmp(cmd, "../", 3) == 0)
-		return (ft_strdup(cmd));
+		return (ft_strdup(cmd));*/
 	return (NULL);
 }
 
 char	*format_bin_path(char *path_dir, char *cmd)
 {
-	char *formatted_path;
-	char *step1_path;
+	char	*formatted_path;
+	char	*step1_path;
 
 	step1_path = ft_strjoin(path_dir, "/");
 	if (!step1_path)
-		return (free(path_dir), NULL);
+		return (NULL);
 	formatted_path = ft_strjoin(step1_path, &cmd[0]);
 	if (!formatted_path)
 		return (free(step1_path), NULL);
