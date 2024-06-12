@@ -6,7 +6,7 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 17:36:01 by jguacide          #+#    #+#             */
-/*   Updated: 2024/06/12 13:09:59 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/06/12 14:24:19 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,33 +25,39 @@
 char	**retrieve_cmds(char *argv, char *env[])
 {
 	char	**cmd;
-	char	*env_path;
 	char	*cmd_path;
 	char	**path_substr;
 
 	cmd = get_cmd(argv);
 	if (!cmd)
 		return (NULL);
-	env_path = get_env_path(env);
-	if (!env_path)
-		return (free_double(cmd), NULL);
-	path_substr = ft_split(env_path, ':');
+	path_substr = retrieve_env_path(env);
 	if (!path_substr)
-	{
-		free_double(cmd);
-		return (free (env_path), NULL);
-	}
+		return (free_double(cmd), NULL);
 	cmd_path = get_cmd_path(path_substr, cmd[0]);
 	if (!cmd_path)
 	{
 		free_double(cmd);
-		free_double(path_substr);
-		return (free(env_path), NULL);
+		return (free(path_substr), NULL);
 	}
 	free_double(path_substr);
 	free(cmd[0]);
 	cmd[0] = cmd_path;
 	return (cmd);
+}
+
+char	**retrieve_env_path(char *env[])
+{
+	char	*env_path;
+	char	**path_substr;
+
+	env_path = get_env_path(env);
+	if (!env_path)
+		return (NULL);
+	path_substr = ft_split(env_path, ':');
+	if (!path_substr)
+		return (free(env_path), NULL);
+	return (path_substr);
 }
 
 char	**get_cmd(char *str)
@@ -106,27 +112,4 @@ char	*get_cmd_path(char **path_dir, char *cmd)
 		}
 	}
 	return (ft_strdup(cmd));
-}
-
-char	*check_direct_paths(char *cmd)
-{
-	if (cmd[0] == '/'
-		|| cmd[0] == '.'
-		|| cmd[0] == '~')
-		return (ft_strdup(cmd));
-	return (NULL);
-}
-
-char	*format_bin_path(char *path_dir, char *cmd)
-{
-	char	*formatted_path;
-	char	*step1_path;
-
-	step1_path = ft_strjoin(path_dir, "/");
-	if (!step1_path)
-		return (NULL);
-	formatted_path = ft_strjoin(step1_path, &cmd[0]);
-	if (!formatted_path)
-		return (free(step1_path), NULL);
-	return (free(step1_path), formatted_path);
 }

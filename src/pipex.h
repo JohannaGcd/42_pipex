@@ -6,7 +6,7 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 17:36:38 by jguacide          #+#    #+#             */
-/*   Updated: 2024/06/12 12:47:00 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/06/12 14:20:28 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ int		execute_child(char *argv[], int fd[], char *env[], size_t child);
 
 // get_cmd.c
 char	**retrieve_cmds(char *argv, char *env[]);
+char	**retrieve_env_path(char *env[]);
 char	*get_cmd_path(char *env[], char *cmd);
 char	**get_cmd(char *str);
 char	*get_env_path(char *env[]);
