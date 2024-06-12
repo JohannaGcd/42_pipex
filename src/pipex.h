@@ -6,13 +6,12 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 17:36:38 by jguacide          #+#    #+#             */
-/*   Updated: 2024/06/10 17:36:39 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/06/12 12:47:00 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PIPEX
-# define PIPEX
-# define EXIT_FAILURE 1
+#ifndef PIPEX_H
+# define PIPEX_H
 
 # include "../lib/src/ft_printf/ft_printf.h"
 # include "../lib/src/get_next_line/get_next_line.h"
@@ -23,6 +22,8 @@
 # include <string.h>
 # include <sys/wait.h>
 # include <unistd.h>
+
+# define EXIT_FAILURE 1
 
 // execute_child.c
 int		execute_child(char *argv[], int fd[], char *env[], size_t child);

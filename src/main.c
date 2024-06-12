@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/12 12:47:55 by jguacide          #+#    #+#             */
+/*   Updated: 2024/06/12 12:56:30 by jguacide         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "pipex.h"
 #include <stdlib.h>
 
@@ -34,16 +46,8 @@ int	main(int argc, char *argv[], char *env[])
 	if (id_array[1] == 0)
 	{
 		exit_code = execute_child(argv, fd, env, 2);
-		if (exit_code == 127)
-		{
-			perror("Error with second child");
-			exit(127);
-		}
-		if (exit_code != 0) 
-		{
-			perror("first Error with second child");
-			exit(exit_code);
-		}
+		if (exit_code == 127 || exit_code != 0)
+			return (perror("Error with child"), exit_code);
 	}
 	return (wait_for_children(id_array[0], id_array[1], fd));
 }

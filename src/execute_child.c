@@ -6,7 +6,7 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 17:36:05 by jguacide          #+#    #+#             */
-/*   Updated: 2024/06/10 19:29:12 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/06/12 13:04:44 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,16 +73,12 @@ int	set_in_and_out(char *argv[], int pipe[], size_t child_i)
 	{
 		read_end = pipe[0];
 		write_end = open_file(argv[4], child_i);
-		//close(pipe[1]);
 	}
 	if (read_end == -1 || write_end == -1)
 		return (perror("error opening file"), 1);
 	if (dup2(read_end, STDIN_FILENO) == -1)
 	{
-		if (child_i == 1)
-			close(pipe[1]);
-		else
-			close(pipe[0]);
+		child_i == 1 ? close(pipe[1]) : close(pipe[0]);
 		return (perror("Error redirecting STDIN to infile"), 1);
 	}
 	close(read_end);
@@ -94,3 +90,13 @@ int	set_in_and_out(char *argv[], int pipe[], size_t child_i)
 	close(pipe[1]);
 	return (0);
 }
+/*if (dup2(read_end, STDIN_FILENO) == -1)
+	{
+		if (child_i == 1)
+			close(pipe[1]);
+		else
+			close(pipe[0]);
+		return (perror("Error redirecting STDIN to infile"), 1);
+	}
+	close(read_end);
+*/

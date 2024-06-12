@@ -6,7 +6,7 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 17:36:01 by jguacide          #+#    #+#             */
-/*   Updated: 2024/06/10 19:37:58 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/06/12 13:09:59 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,16 +39,14 @@ char	**retrieve_cmds(char *argv, char *env[])
 	if (!path_substr)
 	{
 		free_double(cmd);
-		free(env_path);
-		return (NULL);
+		return (free (env_path), NULL);
 	}
 	cmd_path = get_cmd_path(path_substr, cmd[0]);
 	if (!cmd_path)
 	{
 		free_double(cmd);
-		free(env_path);
 		free_double(path_substr);
-		return (NULL);
+		return (free(env_path), NULL);
 	}
 	free_double(path_substr);
 	free(cmd[0]);
@@ -92,10 +90,7 @@ char	*get_cmd_path(char **path_dir, char *cmd)
 
 	full_cmd_path = check_direct_paths(cmd);
 	if (full_cmd_path)
-	{
-		//free_double(path_dir);
 		return (full_cmd_path);
-	}
 	else
 	{
 		i = 0;
@@ -119,13 +114,6 @@ char	*check_direct_paths(char *cmd)
 		|| cmd[0] == '.'
 		|| cmd[0] == '~')
 		return (ft_strdup(cmd));
-/*
-	if (ft_strncmp(cmd, "/", 1) == 0)
-		return (ft_strdup(cmd));
-	if (ft_strncmp(cmd, "./", 2) == 0)
-		return (ft_strdup(cmd));
-	if (ft_strncmp(cmd, "../", 3) == 0)
-		return (ft_strdup(cmd));*/
 	return (NULL);
 }
 
