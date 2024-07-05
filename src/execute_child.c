@@ -6,7 +6,7 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 17:36:05 by jguacide          #+#    #+#             */
-/*   Updated: 2024/06/12 15:02:35 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/07/05 13:36:33 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,26 @@ int	open_file(char *file, size_t child_i)
 	return (fd);
 }
 
+// redirect file descriptors
+int	redirect_fds(int read_end, int write_end)
+{
+	if (dup2(read_end, STDIN_FILENO) == -1)
+		return (1);
+	if (dup2(write_end, STDOUT_FILENO) == -1)
+		return (1);
+	return (0);
+}
+
+// close pipes in case redirect_fds fails
+int	close_pipes(size_t child_i, int pipe[])
+{
+	if (child_i == 1)
+		close(pipe[1]);
+	else
+		close(pipe[0]);
+	return (1);
+}
+
 // protect & close unused fd
 int	set_in_and_out(char *argv[], int pipe[], size_t child_i)
 {
@@ -76,20 +96,10 @@ int	set_in_and_out(char *argv[], int pipe[], size_t child_i)
 	}
 	if (read_end == -1 || write_end == -1)
 		return (perror("error opening file"), 1);
-	if (dup2(read_end, STDIN_FILENO) == -1)
+	if (redirect_fds(read_end, write_end) == 1)
 	{
-		if (child_i == 1)
-			close(pipe[1]);
-		else
-			close(pipe[0]);
-		return (perror("Error redirecting STDIN to infile"), 1);
+		close_pipes(child_i, pipe);
+		return (perror("Error with dup2"), 1);
 	}
-	close(read_end);
-	if (dup2(write_end, STDOUT_FILENO) == -1)
-	{
-		close(pipe[0]);
-		return (perror("Error redirecting pipe to STDOUT"), 1);
-	}
-	close(pipe[1]);
-	return (0);
+	return (close(read_end), close(pipe[1]), 0);
 }

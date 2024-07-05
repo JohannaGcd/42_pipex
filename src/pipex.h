@@ -6,7 +6,7 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 17:36:38 by jguacide          #+#    #+#             */
-/*   Updated: 2024/06/12 14:20:28 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/07/05 13:34:52 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,11 @@
 # define EXIT_FAILURE 1
 
 // execute_child.c
+int		open_file(char *file, size_t child_i);
 int		execute_child(char *argv[], int fd[], char *env[], size_t child);
+int		set_in_and_out(char *argv[], int pipe[], size_t child_i);
+int		redirect_fds(int read_end, int write_end);
+int		close_pipes(size_t child_i, int pipe[]);
 
 // get_cmd.c
 char	**retrieve_cmds(char *argv, char *env[]);
