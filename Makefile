@@ -17,8 +17,8 @@ LIBS_TARGET		:= lib/libftprintfgnl.a
 # ------------ Utensils ------------ #
 
 CFLAGS			:= -Wall -Wextra -Werror -g
-DIR_PUP			= mkdir -p $(@D)
-RM				:= rm -rf
+DIR_PUP			=	mkdir -p $(@D)
+RM				:=	rm -rf
 
 # ------------ Recipes ------------ #
 

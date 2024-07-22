@@ -6,7 +6,7 @@
 /*   By: jguacide <jguacide@student.codam.nl>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 17:36:38 by jguacide          #+#    #+#             */
-/*   Updated: 2024/07/05 13:34:52 by jguacide         ###   ########.fr       */
+/*   Updated: 2024/07/22 15:53:16 by jguacide         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 # include "../lib/src/get_next_line/get_next_line.h"
 # include "../lib/src/libft/libft.h"
 # include <errno.h>
-# include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
 # include <sys/wait.h>
