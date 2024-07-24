@@ -4,11 +4,19 @@
 
 This program implements a simple version of a command pipeline using fork and pipe system calls. The program creates two child processes to execute two different commands and redirects their input and output through a pipe. The main function:
 
-1. Initializes arrays for storing child process IDs and file descriptors for the pipe.
-2. Validates the number of command-line arguments.
-3. Creates a pipe and forks two child processes.
-4. Each child process executes a specified command, redirecting input and output as needed.
-5. Waits for both child processes to complete and collects their exit statuses.
+## How to build and run the program
+### Build it using:
+```
+git clone git@github.com:JohannaGcd/42_pipex.git && cd 42_pipex && make
+```
+### Run it with:
+```
+ ./pipex infile "ls -l" "wc -l" outfile
+```
+Should behave as:
+```
+< infile ls -l | wc -l > outfile
+```
 
 ## What I Learned
 
