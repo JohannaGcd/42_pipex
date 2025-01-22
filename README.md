@@ -54,5 +54,3 @@ Should behave as:
 - `get_cmd()`: Splits a command string into arguments.
 - `get_env_path()`: Retrieves the value of the PATH environment variable.
 - `get_cmd_path()`: Constructs the full path for an executable command.
-
-This README provides a brief overview of the functionality and key concepts utilized in the program, focusing on process management, inter-process communication, and command execution in a Unix-like environment.
